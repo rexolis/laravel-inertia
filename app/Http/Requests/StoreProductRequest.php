@@ -39,10 +39,4 @@ class StoreProductRequest extends FormRequest
         ];
     }
 
-    public function prepareForValidation()
-    {
-        $this->merge([
-            'price' => $this->filled('price') ? $this->price * 100 : $this->price
-        ]);
-    }
 }
