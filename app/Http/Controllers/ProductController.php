@@ -8,6 +8,7 @@ use App\Http\Resources\CategoryResource;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
+use App\Http\Requests\BulkUpdateProductRequest;
 
 class ProductController extends Controller
 {
@@ -21,7 +22,7 @@ class ProductController extends Controller
             ->latest()
             ->with('category')
             ->where(function ($query) {
-                if ($search = request()->search) {
+                if ($search = request()->query('search')) {
                     $query->where('name', 'like', '%' . $search . '%')
                         ->orWhereHas('category', function ($query) use ($search) {
                             $query->where('name', 'like', '%' . $search . '%');
@@ -42,6 +43,7 @@ class ProductController extends Controller
 
         return inertia('Product/Index', [
             'products' => ProductResource::collection($products),
+            'categories' => CategoryResource::collection(Category::orderBy('name')->get()),
             'query' => (object) request()->query()
         ]);
     }
@@ -102,6 +104,21 @@ class ProductController extends Controller
     }
 
     /**
+     * Update the specified resource in storage.
+     */
+    public function bulkUpdate(BulkUpdateProductRequest $request)
+    {
+        Product::whereIn('id', $request->product_ids)
+            ->update([
+                'category_id' => $request->category_id
+            ]);
+
+        return redirect()
+            ->route('products.index')
+            ->with('message', 'Selected products updated successfully.');
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(Product $product)
@@ -111,5 +128,18 @@ class ProductController extends Controller
         return redirect()
             ->route('products.index')
             ->with('message', 'Product has been deleted successfully.');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function bulkDestroy(string $ids)
+    {
+        $ids = explode(',', $ids);
+        Product::destroy($ids);
+
+        return redirect()
+            ->route('products.index')
+            ->with('message', 'Selected products deleted successfully.');
     }
 }
