@@ -7,6 +7,12 @@ defineProps({
         required: true
     }
 })
+
+const pageUrl = (url) => {
+    const { pathname, search } = new URL(url, window.location.origin);
+    // console.log(pathname, search);
+    return `${pathname}${search}`;
+}
 </script>
 
 <template>
@@ -17,17 +23,22 @@ defineProps({
         </span>
         <ul class="inline-flex -space-x-px rtl:space-x-reverse text-sm h-8">
             <li v-for="(link, index) in meta.links" :key="index">
-                <Link 
+                <Link
+                    v-if="link.url"
                     preserve-scroll
-                    :href="link.url ?? ''" 
+                    :href="pageUrl(link.url)"
                     class="flex items-center justify-center px-3 h-8 ms-0"
                     :class="{
                         'leading-tight text-gray-500 hover:text-gray-700': !link.active,
                         'text-blue-600 hover:text-blue-700': link.active,
-                        'text-stone-400 hover:text-stone-400': !link.url
                     }"
                     v-html="link.label"
-                    ></Link>
+                />
+                <span
+                    v-else
+                    class="flex items-center justify-center px-3 h-8 ms-0 text-stone-400"
+                    v-html="link.label"
+                />
             </li>
         </ul>
     </nav>
