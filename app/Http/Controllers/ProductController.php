@@ -28,6 +28,15 @@ class ProductController extends Controller
                         });
                 }
             })
+            ->when(!request()->query('sort_by'), function ($query) {
+                $query->latest();
+            })
+            ->when(in_array(ltrim(request()->query('sort_by'), '-'), ['name', 'price', 'weight']), function ($query) {
+                $sortBy = request()->query('sort_by');
+                $field = ltrim($sortBy, '-');
+                $direction = str_starts_with($sortBy, '-') ? 'desc' : 'asc';
+                $query->orderBy($field, $direction);
+            })
             ->paginate(10)
             ->withQueryString();
 
